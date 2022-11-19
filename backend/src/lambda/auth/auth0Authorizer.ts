@@ -1,14 +1,14 @@
-import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
-import 'source-map-support/register'
+import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda';
+import 'source-map-support/register';
 
 import { verify, decode } from 'jsonwebtoken'
-import { createLogger } from '../../utils/logger'
-import { Jwt } from '../../auth/Jwt'
-import { JwtPayload } from '../../auth/JwtPayload'
+import { createLogger } from '../../utils/logger';
+import { Jwt } from '../../auth/Jwt';
+import { JwtPayload } from '../../auth/JwtPayload';
 
 const jwks = require("jwks-rsa");
 
-const logger = createLogger('auth')
+const logger = createLogger('auth');
 
 // TODO: Provide a URL that can be used to download a certificate that can be used - done
 // to verify JWT token signature.
@@ -18,10 +18,10 @@ const jwksUrl = 'https://dev-imwin-7q.us.auth0.com/.well-known/jwks.json';
 export const handler = async (
   event: CustomAuthorizerEvent
 ): Promise<CustomAuthorizerResult> => {
-  logger.info('Authorizing a user', event.authorizationToken)
+  logger.info('Authorizing a user', event.authorizationToken);
   try {
-    const jwtToken = await verifyToken(event.authorizationToken)
-    logger.info('User was authorized', jwtToken)
+    const jwtToken = await verifyToken(event.authorizationToken);
+    logger.info('User was authorized', jwtToken);
 
     return {
       principalId: jwtToken.sub,
