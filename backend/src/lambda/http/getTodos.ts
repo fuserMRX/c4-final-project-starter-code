@@ -1,22 +1,29 @@
-import 'source-map-support/register'
+import 'source-map-support/register';
 
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-import * as middy from 'middy'
-import { cors } from 'middy/middlewares'
+const express = require('express');
+const serverlessExpress = require('@vendia/serverless-express');
+const { getCurrentInvoke } = require('@vendia/serverless-express');
+const app = express();
 
-import { getTodosForUser as getTodosForUser } from '../../businessLogic/todos'
+import { createLogger } from '../../utils/logger';
+import { getTodosForUser } from '../../businessLogic/todos';
 import { getUserId } from '../utils';
 
-// TODO: Get all TODO items for a current user
-export const handler = middy(
-  async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    // Write your code here
-    const todos = '...'
+const logger = createLogger('getTodos');
 
-    return undefined
+app.get('/todos', async (req, res) => {
+  const { event, context } = getCurrentInvoke();
 
-handler.use(
-  cors({
-    credentials: true
-  })
-)
+  logger.info(`GetTodos info about event ==> ${JSON.stringify(event)}`);
+  logger.info(`GetTodos info about context ==> ${JSON.stringify(context)}`);
+
+  const userId = getUserId(event);
+  const todos = await getTodosForUser(userId);
+
+  res.json({
+    todos: todos,
+  });
+
+});
+
+exports.handler = serverlessExpress({ app });
