@@ -103,7 +103,7 @@ functions:
           method: patch
           path: todos/{todoId}
 
-  # TODO: Configure this function
+  # TODO: Configure this function  - done
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
@@ -111,6 +111,18 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      # should be added too in order to avoid "no identity-based policy" error for LocalSecondaryIndexes
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/*
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements

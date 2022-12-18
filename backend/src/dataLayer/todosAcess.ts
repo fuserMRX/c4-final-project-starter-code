@@ -12,49 +12,57 @@ const logger = createLogger('TodosAccess');
 // TODO: Implement the dataLayer logic
 export class TodosAccess {
 
-  constructor(
-    private readonly docClient: DocumentClient = createDynamoDBClient(),
-    private readonly todosTable = process.env.TODOS_TABLE) {
-  }
+    constructor(
+        private readonly docClient: DocumentClient = createDynamoDBClient(),
+        private readonly todosTable = process.env.TODOS_TABLE) {
+    }
 
-  async getTodosForUser(userId): Promise<TodoItem[]> {
-    console.log('Getting all todos');
+    async getTodosForUser(userId): Promise<TodoItem[]> {
+        console.log('Getting all todos');
 
-    const result = await this.docClient.query({
-      TableName: this.todosTable,
-      IndexName: 'CreatedAtIndex',
-      KeyConditionExpression: 'userId = :userId',
-      ExpressionAttributeValues: {
-        ':userId': userId
-      },
-    }, function (err, data) {
-      if (err) console.log(err);
-      else console.log(data);
-    }).promise();
+        const result = await this.docClient.query({
+            TableName: this.todosTable,
+            IndexName: 'CreatedAtIndex',
+            KeyConditionExpression: 'userId = :userId',
+            ExpressionAttributeValues: {
+                ':userId': userId
+            },
+        }, (err, data) => {
+            if (err) console.log(err);
+            else console.log(data);
+        }).promise();
 
-    const items = result.Items;
-    logger.info('All todos results', JSON.stringify(items));
-    return items as TodoItem[];
-  }
+        const items = result.Items;
+        logger.info('All todos results', JSON.stringify(items));
+        return items as TodoItem[];
+    }
 
-  async createTodo(todoItem: TodoItem): Promise<TodoItem> {
-    await this.docClient.put({
-      TableName: this.todosTable,
-      Item: todoItem
-    }).promise();
+    async createTodo(todoItem: TodoItem): Promise<TodoItem> {
+        await this.docClient.put({
+            TableName: this.todosTable,
+            Item: todoItem
+        }).promise();
 
-    return todoItem;
-  }
+        return todoItem;
+    }
+
+    async deleteTodo(userId: string, todoId: string) {
+        const deleteTodo = await this.docClient.delete({
+            TableName: this.todosTable,
+            Key: { userId, todoId }
+        }).promise();
+        return { Deleted: deleteTodo };
+    }
 }
 
 function createDynamoDBClient() {
-  if (process.env.IS_OFFLINE) {
-    console.log('Creating a local DynamoDB instance')
-    return new XAWS.DynamoDB.DocumentClient({
-      region: 'localhost',
-      endpoint: 'http://localhost:8000',
-    })
-  }
+    if (process.env.IS_OFFLINE) {
+        console.log('Creating a local DynamoDB instance')
+        return new XAWS.DynamoDB.DocumentClient({
+            region: 'localhost',
+            endpoint: 'http://localhost:8000',
+        })
+    }
 
-  return new XAWS.DynamoDB.DocumentClient();
+    return new XAWS.DynamoDB.DocumentClient();
 }

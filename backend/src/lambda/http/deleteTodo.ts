@@ -1,25 +1,32 @@
-// import 'source-map-support/register'
+import 'source-map-support/register';
 
-// import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-// import * as middy from 'middy'
-// import { cors, httpErrorHandler } from 'middy/middlewares'
+const express = require('express');
+const serverlessExpress = require('@vendia/serverless-express');
 
-// import { deleteTodo } from '../../businessLogic/todos'
-// import { getUserId } from '../utils'
+import { deleteTodo } from '../../businessLogic/todos';
+import { getUserId } from '../utils';
+import { createLogger } from '../../utils/logger';
 
-// export const handler = middy(
-//   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-//     const todoId = event.pathParameters.todoId
-//     // TODO: Remove a TODO item by id
-    
-//     return undefined
-//   }
-// )
+const logger = createLogger('deleteTodo');
 
-// handler
-//   .use(httpErrorHandler())
-//   .use(
-//     cors({
-//       credentials: true
-//     })
-//   )
+const app = express();
+app.use(express.json());
+
+app.delete('/todos/:todoId', async (req, res) => {
+    const { event } = serverlessExpress.getCurrentInvoke();
+
+    logger.info(`CreateTodo event info => ${JSON.stringify(event)}`);
+
+    const { todoId } = req.params;
+  
+    const userId = getUserId(event);
+  
+    const item = await deleteTodo(userId, todoId);
+  
+    res.json({
+      item,
+    });
+  
+  });
+  
+exports.handler = serverlessExpress({ app });
