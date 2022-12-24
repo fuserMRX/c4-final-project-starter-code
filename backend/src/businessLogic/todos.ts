@@ -2,7 +2,7 @@ import { TodosAccess } from '../dataLayer/todosAcess';
 // import { AttachmentUtils } from '../helpers/attachmentUtils';
 import { TodoItem } from '../models/TodoItem';
 import { CreateTodoRequest } from '../requests/CreateTodoRequest';
-// import { UpdateTodoRequest } from '../requests/UpdateTodoRequest';
+import { UpdateTodoRequest } from '../requests/UpdateTodoRequest';
 // import { createLogger } from '../utils/logger';
 // import { parseUserId } from '../auth/utils';
 import * as uuid from 'uuid';
@@ -20,8 +20,6 @@ export async function createTodo(
     createTodoRequest: CreateTodoRequest,
     userId: string
 ): Promise<TodoItem> {
-
-    // const userId = parseUserId(jwtToken);
     const todoId = uuid.v4();
 
     return await todoAccess.createTodo({
@@ -39,14 +37,14 @@ export async function deleteTodo(userId: string, todoId: string) {
     return await todoAccess.deleteTodo(userId, todoId);
 };
 
-// const deleteTodo = async () => {
+export async function updateTodo(userId: string, todoId: string, updateTodoItem: UpdateTodoRequest) {
+    return await todoAccess.updateTodo(
+        userId,
+        todoId,
+        updateTodoItem,
+    );
+};
 
-// };
+// export async function createAttachmentPresignedUrl() {
 
-// const updateTodo = async () => {
-
-// };
-
-// const createAttachmentPresignedUrl = async () => {
-
-// };
+// }

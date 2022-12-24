@@ -3,7 +3,7 @@ const AWSXRay = require('aws-xray-sdk');
 import { DocumentClient } from 'aws-sdk/clients/dynamodb';
 import { createLogger } from '../utils/logger';
 import { TodoItem } from '../models/TodoItem';
-// import { TodoUpdate } from '../models/TodoUpdate';
+import { TodoUpdate } from '../models/TodoUpdate';
 
 const XAWS = AWSXRay.captureAWS(AWS);
 
@@ -34,6 +34,7 @@ export class TodosAccess {
 
         const items = result.Items;
         logger.info('All todos results', JSON.stringify(items));
+
         return items as TodoItem[];
     }
 
@@ -51,13 +52,31 @@ export class TodosAccess {
             TableName: this.todosTable,
             Key: { userId, todoId }
         }).promise();
-        return { Deleted: deleteTodo };
+
+        return { Deleted: deleteTodo, todoId };
+    }
+
+    async updateTodo(userId: string, todoId: string, updateTodoItem: TodoUpdate): Promise<TodoUpdate> {
+        const { name, dueDate, done } = updateTodoItem;
+        await this.docClient.update({
+            TableName: this.todosTable,
+            Key: { userId, todoId },
+            ExpressionAttributeNames: { '#N': 'name' },
+            UpdateExpression: 'set #N = :name, dueDate = :dueDate, done = :done',
+            ExpressionAttributeValues: {
+                ':name': name,
+                ':dueDate': dueDate,
+                ':done': done,
+            },
+        }).promise();
+
+        return updateTodoItem;
     }
 }
 
 function createDynamoDBClient() {
     if (process.env.IS_OFFLINE) {
-        console.log('Creating a local DynamoDB instance')
+        console.log('Creating a local DynamoDB instance');
         return new XAWS.DynamoDB.DocumentClient({
             region: 'localhost',
             endpoint: 'http://localhost:8000',

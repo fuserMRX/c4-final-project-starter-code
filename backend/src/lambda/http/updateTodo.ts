@@ -1,27 +1,32 @@
-// import 'source-map-support/register'
+const express = require('express');
+const serverlessExpress = require('@vendia/serverless-express');
 
-// import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-// import * as middy from 'middy'
-// import { cors, httpErrorHandler } from 'middy/middlewares'
+import 'source-map-support/register';
+import { createLogger } from '../../utils/logger';
+import { updateTodo } from '../../businessLogic/todos';
+import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest';
+import { getUserId } from '../utils';
 
-// import { updateTodo } from '../../businessLogic/todos'
-// import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-// import { getUserId } from '../utils'
+const app = express();
+const logger = createLogger('updateTodo');
 
-// export const handler = middy(
-//   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-//     const todoId = event.pathParameters.todoId
-//     const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-//     // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
+app.patch('/todos/:todoId', async (req, res) => {
+    const { event, context } = serverlessExpress.getCurrentInvoke();
 
+    logger.info(`UpdateTodo event info => ${JSON.stringify(event)}`);
+    logger.info(`UpdateTodo context info => ${JSON.stringify(context)}`);
 
-//     return undefined
-// )
+    const { todoId } = req.params;
 
-// handler
-//   .use(httpErrorHandler())
-//   .use(
-//     cors({
-//       credentials: true
-//     })
-//   )
+    const userId = getUserId(event);
+
+    const updateTodoItem: UpdateTodoRequest = JSON.parse(event.body);
+    const item = await updateTodo(userId, todoId, updateTodoItem);
+
+    res.json({
+        item,
+    });
+
+});
+
+exports.handler = serverlessExpress({ app });
