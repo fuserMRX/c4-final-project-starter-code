@@ -9,12 +9,17 @@ const XAWS = AWSXRay.captureAWS(AWS);
 
 const logger = createLogger('TodosAccess');
 
-// TODO: Implement the dataLayer logic
+// TODO: Implement the dataLayer logic - done
 export class TodosAccess {
 
     constructor(
         private readonly docClient: DocumentClient = createDynamoDBClient(),
-        private readonly todosTable = process.env.TODOS_TABLE) {
+        private readonly todosTable = process.env.TODOS_TABLE,
+        private readonly bucket = process.env.ATTACHMENT_S3_BUCKET,
+        private readonly S3 = new XAWS.S3({
+            signatureVersion: 'v4'
+        }),
+        private readonly urlExp = +process.env.SIGNED_URL_EXPIRATION) {
     }
 
     async getTodosForUser(userId): Promise<TodoItem[]> {
@@ -71,6 +76,26 @@ export class TodosAccess {
         }).promise();
 
         return updateTodoItem;
+    }
+
+    async generateUploadUrl(todoId: string, userId: string): Promise<string> {
+        const uploadUrl = this.S3.getSignedUrl('putObject', {
+            Bucket: this.bucket,
+            Key: todoId,
+            Expires: this.urlExp
+        });
+
+        await this.docClient.update({
+            TableName: this.todosTable,
+            Key: { userId, todoId },
+            UpdateExpression: "set attachmentUrl=:URL",
+            ExpressionAttributeValues: {
+                ":URL": uploadUrl.split("?")[0]
+            },
+            ReturnValues: "UPDATED_NEW"
+        }).promise();
+
+        return uploadUrl;
     }
 }
 

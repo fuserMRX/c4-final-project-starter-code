@@ -1,14 +1,10 @@
 import { TodosAccess } from '../dataLayer/todosAcess';
-// import { AttachmentUtils } from '../helpers/attachmentUtils';
 import { TodoItem } from '../models/TodoItem';
 import { CreateTodoRequest } from '../requests/CreateTodoRequest';
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest';
-// import { createLogger } from '../utils/logger';
-// import { parseUserId } from '../auth/utils';
 import * as uuid from 'uuid';
-// import * as createError from 'http-errors';
 
-// TODO: Implement businessLogic
+// TODO: Implement businessLogic - done
 
 const todoAccess = new TodosAccess();
 
@@ -45,6 +41,6 @@ export async function updateTodo(userId: string, todoId: string, updateTodoItem:
     );
 };
 
-// export async function createAttachmentPresignedUrl() {
-
-// }
+export async function createAttachmentPresignedUrl(userId: string, todoId: string) {
+    return await todoAccess.generateUploadUrl(userId, todoId);
+}

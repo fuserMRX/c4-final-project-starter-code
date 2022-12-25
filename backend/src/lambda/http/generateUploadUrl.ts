@@ -1,26 +1,31 @@
-// import 'source-map-support/register'
+import 'source-map-support/register';
 
-// import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
-// import * as middy from 'middy'
-// import { cors, httpErrorHandler } from 'middy/middlewares'
+const express = require('express');
+const serverlessExpress = require('@vendia/serverless-express');
+const app = express();
 
-// import { createAttachmentPresignedUrl } from '../../businessLogic/todos'
-// import { getUserId } from '../utils'
+import { createLogger } from '../../utils/logger';
+import { getUserId } from '../utils';
+import { createAttachmentPresignedUrl } from '../../businessLogic/todos';
 
-// export const handler = middy(
-//   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-//     const todoId = event.pathParameters.todoId
-//     // TODO: Return a presigned URL to upload a file for a TODO item with the provided id
-    
+const logger = createLogger('generateUploadUrl');
 
-//     return undefined
-//   }
-// )
+app.post('/todos/:todoId/attachment', async (req, res) => {
+    const { event, context } = serverlessExpress.getCurrentInvoke();
 
-// handler
-//   .use(httpErrorHandler())
-//   .use(
-//     cors({
-//       credentials: true
-//     })
-//   )
+    logger.info(`generateUploadUrl event info => ${JSON.stringify(event)}`);
+    logger.info(`generateUploadUrl context info => ${JSON.stringify(context)}`);
+
+    const { todoId } = req.params;
+
+    const userId = getUserId(event);
+
+    const uploadUrl = await createAttachmentPresignedUrl(userId, todoId);
+
+    res.json({
+        uploadUrl,
+    });
+
+});
+
+exports.handler = serverlessExpress({ app });

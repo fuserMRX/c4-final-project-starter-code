@@ -139,7 +139,7 @@ functions:
           - dynamodb:DeleteItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/*
 
-  # TODO: Configure this function
+  # TODO: Configure this function - done
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
@@ -147,7 +147,18 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
-
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+          - Effect: Allow
+            Action:
+              - dynamodb:UpdateItem
+            Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+          # should be added too in order to avoid "no identity-based policy" error for LocalSecondaryIndexes
+          - Effect: Allow
+            Action:
+              - dynamodb:UpdateItem
+            Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/*
 resources:
   Resources:
     # Add necessary AWS resources. You will need at least the following AWS resources
@@ -192,14 +203,38 @@ resources:
             ProjectionType: ALL # What attributes will be copied to an index
         BillingMode: PAY_PER_REQUEST
 
-    # TODO: Complete the bucket properties below. 
-    # Do not forget to add the CorsConfiguration propoerty
-    # AttachmentsBucket:
-    #   Type: AWS::S3::Bucket
-    #   Properties:
+    # TODO: Complete the bucket properties below. - done
+    # Do not forget to add the CorsConfiguration property
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.ATTACHMENT_S3_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            -
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - DELETE
+                - HEAD
+              MaxAge: 3000
 
-    # TODO: Complete the policy below and attach it to the bucket defined above
+    # TODO: Complete the policy below and attach it to the bucket defined above - done
     # For cross referencing the name of the bucket, use "!Ref AttachmentsBucket"
-    # BucketPolicy:
-    #   Type: AWS::S3::BucketPolicy
-    #   Properties:
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: MyPolicy
+          Version: "2012-10-17"
+          Statement:
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
+        Bucket: !Ref AttachmentsBucket

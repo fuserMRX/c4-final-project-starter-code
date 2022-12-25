@@ -15,7 +15,7 @@ app.use(express.json());
 app.delete('/todos/:todoId', async (req, res) => {
     const { event } = serverlessExpress.getCurrentInvoke();
 
-    logger.info(`CreateTodo event info => ${JSON.stringify(event)}`);
+    logger.info(`DeleteTodo event info => ${JSON.stringify(event)}`);
 
     const { todoId } = req.params;
   
