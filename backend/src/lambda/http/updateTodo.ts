@@ -23,6 +23,9 @@ app.patch('/todos/:todoId', async (req, res) => {
     const updateTodoItem: UpdateTodoRequest = JSON.parse(event.body);
     const item = await updateTodo(userId, todoId, updateTodoItem);
 
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
     res.json({
         item,
     });

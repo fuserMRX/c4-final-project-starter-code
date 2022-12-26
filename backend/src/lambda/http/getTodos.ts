@@ -19,8 +19,11 @@ app.get('/todos', async (req, res) => {
   const userId = getUserId(event);
   const todos = await getTodosForUser(userId);
 
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+
   res.json({
-    todos: todos,
+    items: todos,
   });
 
 });

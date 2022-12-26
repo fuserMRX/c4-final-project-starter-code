@@ -23,6 +23,9 @@ app.post('/todos', async (req, res) => {
   const newTodo: CreateTodoRequest = JSON.parse(event.body);
   const item = await createTodo(newTodo, userId);
 
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+
   res.json({
     item,
   });

@@ -22,6 +22,9 @@ app.delete('/todos/:todoId', async (req, res) => {
     const userId = getUserId(event);
   
     const item = await deleteTodo(userId, todoId);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
   
     res.json({
       item,

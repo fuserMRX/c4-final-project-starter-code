@@ -133,11 +133,6 @@ functions:
         Action:
           - dynamodb:DeleteItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-      # should be added too in order to avoid "no identity-based policy" error for LocalSecondaryIndexes
-      - Effect: Allow
-        Action:
-          - dynamodb:DeleteItem
-        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/*
 
   # TODO: Configure this function - done
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
@@ -154,11 +149,13 @@ functions:
             Action:
               - dynamodb:UpdateItem
             Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-          # should be added too in order to avoid "no identity-based policy" error for LocalSecondaryIndexes
           - Effect: Allow
             Action:
-              - dynamodb:UpdateItem
-            Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/*
+              - s3:PutObject
+              - s3:GetObject
+              - '*'
+            Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
+
 resources:
   Resources:
     # Add necessary AWS resources. You will need at least the following AWS resources
@@ -235,6 +232,6 @@ resources:
           Statement:
               Effect: Allow
               Principal: '*'
-              Action: 's3:GetObject'
-              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
+              Action: s3:GetObject
+              Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
         Bucket: !Ref AttachmentsBucket

@@ -22,6 +22,9 @@ app.post('/todos/:todoId/attachment', async (req, res) => {
 
     const uploadUrl = await createAttachmentPresignedUrl(userId, todoId);
 
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
     res.json({
         uploadUrl,
     });

@@ -78,7 +78,7 @@ export class TodosAccess {
         return updateTodoItem;
     }
 
-    async generateUploadUrl(todoId: string, userId: string): Promise<string> {
+    async generateUploadUrl(userId: string, todoId: string): Promise<string> {
         const uploadUrl = this.S3.getSignedUrl('putObject', {
             Bucket: this.bucket,
             Key: todoId,
@@ -88,11 +88,11 @@ export class TodosAccess {
         await this.docClient.update({
             TableName: this.todosTable,
             Key: { userId, todoId },
-            UpdateExpression: "set attachmentUrl=:URL",
+            UpdateExpression: 'set attachmentUrl = :attachmentUrl',
             ExpressionAttributeValues: {
-                ":URL": uploadUrl.split("?")[0]
+                ":attachmentUrl": uploadUrl.split("?")[0]
             },
-            ReturnValues: "UPDATED_NEW"
+            ReturnValues: 'UPDATED_NEW'
         }).promise();
 
         return uploadUrl;
